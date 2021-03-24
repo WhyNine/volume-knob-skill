@@ -23,6 +23,8 @@ POT_ENC_C = 11
 BRIGHTNESS = 0.5                # Effectively the maximum fraction of the period that the LED will be on
 PERIOD = int(255 / BRIGHTNESS)  # Add a period large enough to get 0-255 steps at the desired brightness
 
+knob = 0
+
 class VolumeKnobSkill(MycroftSkill):
 
     def set_colour(self, colour, intensity):
@@ -58,6 +60,7 @@ class VolumeKnobSkill(MycroftSkill):
             self.ioe.set_mode(PIN_RED, io.PWM, invert=True)
             self.ioe.set_mode(PIN_GREEN, io.PWM, invert=True)
             self.ioe.set_mode(PIN_BLUE, io.PWM, invert=True)
+            knob = self.ioe.read_rotary_encoder(1)
             GPIO.setwarnings(False)
             GPIO.setup(INTERRUPT_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
             GPIO.remove_event_detect(INTERRUPT_PIN)
@@ -77,12 +80,13 @@ class VolumeKnobSkill(MycroftSkill):
         if GPIO.event_detected(INTERRUPT_PIN):
             LOGGER.info("Detected knob interrupt")
             self.ioe.clear_interrupt()
-            count = self.ioe.read_rotary_encoder(1)
-            LOGGER.debug(f"Knob value = {count}")
-            if count > 0:
-                self.bus.emit(Message('mycroft.volume.increase', {"play_sound": True}))
-            else:
-                self.bus.emit(Message('mycroft.volume.decrease', {"play_sound": True}))
+            new_knob = self.ioe.read_rotary_encoder(1)
+            LOGGER.debug(f"Knob values: new = {new_knob}, old = {knob}")
+            if new_knob > knob:
+                self.bus.emit(Message('mycroft.volume.increase', {"play_sound": False}))
+            if new_knob < knob:
+                self.bus.emit(Message('mycroft.volume.decrease', {"play_sound": False}))
+            knob = new_knob
 
     def on_listener_started(self, message):
         self.led_listen()
