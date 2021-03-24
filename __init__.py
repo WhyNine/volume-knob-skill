@@ -3,7 +3,6 @@ from mycroft.messagebus.message import Message
 from mycroft.util.log import getLogger
 
 from alsaaudio import Mixer, mixers as alsa_mixers
-
 import RPi.GPIO as GPIO
 import ioexpander as io
 
@@ -29,9 +28,12 @@ class VolumeKnobSkill(MycroftSkill):
 
     def set_colour(self, colour, intensity):
         [r, g, b] = colours[colour]
-        self.ioe.output(PIN_RED, int(r * intensity/100))
-        self.ioe.output(PIN_GREEN, int(g * intensity/100))
-        self.ioe.output(PIN_BLUE, int(b * intensity/100))
+        try:
+            self.ioe.output(PIN_RED, int(r * intensity/100))
+            self.ioe.output(PIN_GREEN, int(g * intensity/100))
+            self.ioe.output(PIN_BLUE, int(b * intensity/100))
+        except:
+            LOGGER.info("Error while trying to update knob colours")
 
     def led_idle(self):
         LOGGER.info("Change LED to IDLE colour")
@@ -111,12 +113,12 @@ class VolumeKnobSkill(MycroftSkill):
             return self._get_mixer()
         return self._mixer
 
-    def _setvolume(self, vol):
+    def set_volume(self, vol):
         if self.mixer():
             LOGGER.debug(vol)
             self._mixer.setvolume(vol)
 
-    def __get_system_volume(self, default=50):
+    def get_volume(self, default=50):
         vol = default
         if self.mixer():
             vol = min(self._mixer.getvolume()[0], 100)
@@ -125,21 +127,25 @@ class VolumeKnobSkill(MycroftSkill):
 
     def volume(self, message):
         if GPIO.event_detected(INTERRUPT_PIN):
-            LOGGER.info("Detected knob interrupt")
+            LOGGER.debug("Detected knob interrupt")
             self.ioe.clear_interrupt()
-            new_knob = self.ioe.read_rotary_encoder(1)
+            try:
+                new_knob = self.ioe.read_rotary_encoder(1)
+            except:
+                LOGGER.info("Error while trying to read knob value")
+                return
             LOGGER.debug(f"Knob values: new = {new_knob}, old = {self.knob}")
-            vol_level = self.__get_system_volume()
+            vol_level = self.get_volume()
             LOGGER.debug(f"Volume level read as {vol_level}")
             if (new_knob > self.knob) and (vol_level < 100):
                 vol_level += 5
                 if vol_level > 100: vol_level = 100
-                self._setvolume(vol_level)
+                self.set_volume(vol_level)
                 LOGGER.info(f"Volume set to {vol_level}")
             if (new_knob < self.knob) and (vol_level > 0):
                 vol_level -= 5
                 if vol_level < 0: vol_level = 0
-                self._setvolume(vol_level)
+                self.set_volume(vol_level)
                 LOGGER.info(f"Volume set to {vol_level}")
             self.knob = new_knob
 
