@@ -122,7 +122,7 @@ class VolumeKnobSkill(MycroftSkill):
         vol = default
         if self.mixer():
             LOGGER.debug(self._mixer.volumecap())
-            vol = min(self.mixer.getvolume()[0], 100)
+            vol = min(self._mixer.getvolume()[0], 100)
             LOGGER.debug('Volume before mute: {}'.format(vol))
         return vol
 
