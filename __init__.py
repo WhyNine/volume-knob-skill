@@ -82,7 +82,6 @@ class VolumeKnobSkill(MycroftSkill):
         mixer = None
         try:
             mixers = alsa_mixers()
-            LOGGER.debug(mixers)
             # If there are only 1 mixer use that one
             if len(mixers) == 1:
                 mixer = Mixer(mixers[0])
@@ -105,7 +104,6 @@ class VolumeKnobSkill(MycroftSkill):
             except Exception as e:
                 LOGGER.error('Couldn\'t allocate mixer, {}'.format(repr(e)))
         self._mixer = mixer
-        LOGGER.debug(mixer.mixer())
         return mixer
 
     def mixer(self):
@@ -114,14 +112,13 @@ class VolumeKnobSkill(MycroftSkill):
         return self._mixer
 
     def _setvolume(self, vol):
-        if self.mixer:
+        if self.mixer():
             LOGGER.debug(vol)
-            self.mixer.setvolume(vol)
+            self._mixer.setvolume(vol)
 
     def __get_system_volume(self, default=50):
         vol = default
         if self.mixer():
-            LOGGER.debug(self._mixer.volumecap())
             vol = min(self._mixer.getvolume()[0], 100)
             LOGGER.debug('Volume before mute: {}'.format(vol))
         return vol
