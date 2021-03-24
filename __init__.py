@@ -106,7 +106,7 @@ class VolumeKnobSkill(MycroftSkill):
                 LOGGER.error('Couldn\'t allocate mixer, {}'.format(repr(e)))
         self._mixer = mixer
         LOGGER.debug(mixer.mixer())
-        LOGGER.debug(mixer().volumecap())
+        LOGGER.debug(mixer.volumecap())
         return mixer
 
     def mixer(self):
