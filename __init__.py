@@ -74,26 +74,69 @@ class VolumeKnobSkill(MycroftSkill):
         self.add_event('mycroft.skill.handler.complete', self.on_handler_complete)
         self.add_event('mycroft.speech.recognition.unknown', self.on_handler_complete)
 
+    def _get_mixer(self):
+        LOGGER.debug('Finding Alsa Mixer for control...')
+        mixer = None
+        try:
+            mixers = alsa_mixers()
+            LOGGER.debug(mixers)
+            # If there are only 1 mixer use that one
+            if len(mixers) == 1:
+                mixer = Mixer(mixers[0])
+            elif 'Master' in mixers:
+                # Try using the default mixer (Master)
+                mixer = Mixer('Master')
+            elif 'PCM' in mixers:
+                # PCM is another common one
+                mixer = Mixer('PCM')
+            elif 'Digital' in mixers:
+                # My mixer is called 'Digital' (JustBoom DAC)
+                mixer = Mixer('Digital')
+            else:
+                # should be equivalent to 'Master'
+                mixer = Mixer()
+        except Exception:
+            # Retry instanciating the mixer with the built-in default
+            try:
+                mixer = Mixer()
+            except Exception as e:
+                self.log.error('Couldn\'t allocate mixer, {}'.format(repr(e)))
+        self._mixer = mixer
+        return mixer
+
+    def mixer(self):
+        return self._mixer or self._get_mixer()
+
+    def _setvolume(self, vol):
+        if self.mixer:
+            LOGGER.debug(vol)
+            self.mixer.setvolume(vol)
+
+    def __get_system_volume(self, default=50):
+        vol = default
+        if self.mixer:
+            vol = min(self.mixer.getvolume()[0], 100)
+            self.log.debug('Volume before mute: {}'.format(vol))
+        return vol
+
     def volume(self, message):
         if GPIO.event_detected(INTERRUPT_PIN):
             LOGGER.info("Detected knob interrupt")
             self.ioe.clear_interrupt()
             new_knob = self.ioe.read_rotary_encoder(1)
             LOGGER.debug(f"Knob values: new = {new_knob}, old = {self.knob}")
-            vol_msg = self.bus.wait_for_response(Message("mycroft.volume.get", {'show': False}))
-            LOGGER.debug(f"Volme level read as {vol_msg}")
-            if vol_msg:
-                vol = vol_msg.data["percent"]
-                if (new_knob > self.knob) and (vol < 1):
-                    vol += 0.05
-                    if vol > 1: vol = 1
-                    self.bus.emit(Message('mycroft.volume.set', data={"percent": vol}))
-                    LOGGER.info(f"Volume set to {vol}")
-                if (new_knob < self.knob) and (vol > 0):
-                    vol -= 0.05
-                    if vol < 0: vol = 0
-                    self.bus.emit(Message('mycroft.volume.set', data={"percent": vol}))
-                    LOGGER.info(f"Volume set to {vol}")
+            vol_level = self.__get_system_volume()
+            LOGGER.debug(f"Volume level read as {vol_level}")
+            if (new_knob > self.knob) and (vol_level < 100):
+                vol_level += 5
+                if vol_level > 100: vol_level = 100
+                self._setvolume(vol_level)
+                LOGGER.info(f"Volume set to {vol_level}")
+            if (new_knob < self.knob) and (vol_level > 0):
+                vol_level -= 5
+                if vol_level < 0: vol_level = 0
+                self._setvolume(vol_level)
+                LOGGER.info(f"Volume set to {vol_level}")
             self.knob = new_knob
 
     def on_listener_started(self, message):
