@@ -1,0 +1,41 @@
+
+skillMetadata:
+  sections:
+    - name: Volume knob skill
+      fields:
+        - type: label
+          label: Enter the colours and brightnesses of the knob. 
+    - name: LED colour/brightness when idle
+      fields:
+        - name: ledidlecolour
+          type: select
+          label: Colour
+          options: RED|0;GREEN|1;YELLOW|2;BLUE|3;PURPLE|4;CYAN|5;WHITE|6;OFF|7
+          value: 1
+        - name: ledidleintensity
+          type: number
+          label: Intensity (0-100)
+          value: 100
+    - name: LED colour/brightness when listening
+      fields:
+        - name: ledlistencolour
+          type: select
+          label: LED colour while listening for command
+          options: RED|0;GREEN|1;YELLOW|2;BLUE|3;PURPLE|4;CYAN|5;WHITE|6;OFF|7
+          value: 0
+        - name: ledlistenintensity
+          type: number
+          label: Intensity (0-100)
+          value: 100
+    - name: LED colour/brightness when thinking
+      fields:
+        - name: ledthinkcolour
+          type: select
+          label: LED colour while thinking about command
+          options: RED|0;GREEN|1;YELLOW|2;BLUE|3;PURPLE|4;CYAN|5;WHITE|6;OFF|7
+          value: 2
+        - name: ledthinkintensity
+          type: number
+          label: Intensity (0-100)
+          value: 100
+
