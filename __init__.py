@@ -81,16 +81,19 @@ class VolumeKnobSkill(MycroftSkill):
             new_knob = self.ioe.read_rotary_encoder(1)
             LOGGER.debug(f"Knob values: new = {new_knob}, old = {self.knob}")
             vol_msg = self.bus.wait_for_response(Message("mycroft.volume.get", {'show': False}))
+            LOGGER.debug(f"Volme level read as {vol_msg}")
             if vol_msg:
                 vol = vol_msg.data["percent"]
                 if (new_knob > self.knob) and (vol < 1):
                     vol += 0.05
                     if vol > 1: vol = 1
                     self.bus.emit(Message('mycroft.volume.set', data={"percent": vol}))
+                    LOGGER.info(f"Volume set to {vol}")
                 if (new_knob < self.knob) and (vol > 0):
                     vol -= 0.05
                     if vol < 0: vol = 0
                     self.bus.emit(Message('mycroft.volume.set', data={"percent": vol}))
+                    LOGGER.info(f"Volume set to {vol}")
             self.knob = new_knob
 
     def on_listener_started(self, message):
