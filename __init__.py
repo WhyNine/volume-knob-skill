@@ -68,13 +68,13 @@ class VolumeKnobSkill(MycroftSkill):
             LOGGER.warning("Can't initialize GPIO - skill will not load")
             self.speak_dialog("error.initialize")
             return
-        self.schedule_repeating_event(self.knob, None, 0.1, 'VolumeKnob')
+        self.schedule_repeating_event(self.volume, None, 0.1, 'VolumeKnob')
         self.add_event('recognizer_loop:record_begin', self.on_listener_started)
         self.add_event('recognizer_loop:record_end', self.on_listener_ended)
         self.add_event('mycroft.skill.handler.complete', self.on_handler_complete)
         self.add_event('mycroft.speech.recognition.unknown', self.on_handler_complete)
 
-    def knob(self, message):
+    def volume(self, message):
         if GPIO.event_detected(INTERRUPT_PIN):
             LOGGER.info("Detected knob interrupt")
             self.ioe.clear_interrupt()
