@@ -25,8 +25,6 @@ PERIOD = int(255 / BRIGHTNESS)  # Add a period large enough to get 0-255 steps a
 
 class VolumeKnobSkill(MycroftSkill):
 
-    knob = 0
-
     def set_colour(self, colour, intensity):
         [r, g, b] = colours[colour]
         self.ioe.output(PIN_RED, int(r * intensity/100))
