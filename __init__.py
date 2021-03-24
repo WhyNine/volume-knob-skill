@@ -47,6 +47,7 @@ class VolumeKnobSkill(MycroftSkill):
 
     def __init__(self):
         MycroftSkill.__init__(self)
+        self._mixer = None
 
     def initialize(self):
         self.settings_change_callback = self.on_settings_changed
