@@ -2,7 +2,6 @@ from mycroft import MycroftSkill
 from mycroft.messagebus.message import Message
 from mycroft.util.log import getLogger
 
-import time
 import RPi.GPIO as GPIO
 import ioexpander as io
 
@@ -63,6 +62,7 @@ class VolumeKnobSkill(MycroftSkill):
             GPIO.setup(INTERRUPT_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
             GPIO.remove_event_detect(INTERRUPT_PIN)
             GPIO.add_event_detect(INTERRUPT_PIN, GPIO.FALLING)
+            self.led_idle()
         except:
             LOGGER.warning("Can't initialize GPIO - skill will not load")
             self.speak_dialog("error.initialize")
@@ -76,8 +76,8 @@ class VolumeKnobSkill(MycroftSkill):
     def knob(self, message):
         if GPIO.event_detected(INTERRUPT_PIN):
             LOGGER.info("Detected knob interrupt")
-            ioe.clear_interrupt()
-            count = ioe.read_rotary_encoder(1)
+            self.ioe.clear_interrupt()
+            count = self.ioe.read_rotary_encoder(1)
             LOGGER.debug(f"Knob value = {count}")
             if count > 0:
                 self.bus.emit(Message('mycroft.volume.increase', {"play_sound": True}))
