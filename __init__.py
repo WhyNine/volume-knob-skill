@@ -2,6 +2,8 @@ from mycroft import MycroftSkill
 from mycroft.messagebus.message import Message
 from mycroft.util.log import getLogger
 
+from alsaaudio import Mixer, mixers as alsa_mixers
+
 import RPi.GPIO as GPIO
 import ioexpander as io
 
