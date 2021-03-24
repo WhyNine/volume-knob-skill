@@ -108,6 +108,7 @@ class VolumeKnobSkill(MycroftSkill):
         return mixer
 
     def mixer(self):
+        return self._get_mixer()
         return self._mixer or self._get_mixer()
 
     def _setvolume(self, vol):
