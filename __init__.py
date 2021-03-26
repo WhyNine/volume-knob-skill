@@ -1,3 +1,17 @@
+# Copyright Simon Waller
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
 from mycroft import MycroftSkill
 from mycroft.messagebus.message import Message
 from mycroft.util.log import getLogger
@@ -13,25 +27,23 @@ I2C_ADDR = 0x0F  # I2C address of the encoder
 INTERRUPT_PIN = 4
 
 # Encoder pin definitions
-PIN_RED = 1
-PIN_GREEN = 7
-PIN_BLUE = 2
+LED_RED = 1
+LED_GREEN = 7
+LED_BLUE = 2
 
-POT_ENC_A = 12
-POT_ENC_B = 3
-POT_ENC_C = 11
+KNOB_A = 12
+KNOB_B = 3
+KNOB_C = 11
 
-BRIGHTNESS = 0.5                # Effectively the maximum fraction of the period that the LED will be on
-PERIOD = int(255 / BRIGHTNESS)  # Add a period large enough to get 0-255 steps at the desired brightness
 
 class VolumeKnobSkill(MycroftSkill):
 
     def set_colour(self, colour, intensity):
         [r, g, b] = colours[colour]
         try:
-            self.ioe.output(PIN_RED, int(r * intensity/100))
-            self.ioe.output(PIN_GREEN, int(g * intensity/100))
-            self.ioe.output(PIN_BLUE, int(b * intensity/100))
+            self.ioe.output(LED_RED, int(r * intensity/100))
+            self.ioe.output(LED_GREEN, int(g * intensity/100))
+            self.ioe.output(LED_BLUE, int(b * intensity/100))
         except:
             LOGGER.info("Error while trying to update knob colours")
 
@@ -57,12 +69,12 @@ class VolumeKnobSkill(MycroftSkill):
         try:
             self.ioe = io.IOE(i2c_addr=I2C_ADDR, interrupt_pin=4)
             self.ioe.enable_interrupt_out(pin_swap=True)
-            self.ioe.setup_rotary_encoder(1, POT_ENC_A, POT_ENC_B, pin_c=POT_ENC_C)
-            self.ioe.set_pwm_period(PERIOD)
+            self.ioe.setup_rotary_encoder(1, KNOB_A, KNOB_B, pin_c=KNOB_C)
+            self.ioe.set_pwm_period(510)
             self.ioe.set_pwm_control(divider=2)
-            self.ioe.set_mode(PIN_RED, io.PWM, invert=True)
-            self.ioe.set_mode(PIN_GREEN, io.PWM, invert=True)
-            self.ioe.set_mode(PIN_BLUE, io.PWM, invert=True)
+            self.ioe.set_mode(LED_RED, io.PWM, invert=True)
+            self.ioe.set_mode(LED_GREEN, io.PWM, invert=True)
+            self.ioe.set_mode(LED_BLUE, io.PWM, invert=True)
             self.knob = self.ioe.read_rotary_encoder(1)
             GPIO.setwarnings(False)
             GPIO.setup(INTERRUPT_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
@@ -84,17 +96,13 @@ class VolumeKnobSkill(MycroftSkill):
         mixer = None
         try:
             mixers = alsa_mixers()
-            # If there are only 1 mixer use that one
             if len(mixers) == 1:
                 mixer = Mixer(mixers[0])
             elif 'Master' in mixers:
-                # Try using the default mixer (Master)
                 mixer = Mixer('Master')
             elif 'PCM' in mixers:
-                # PCM is another common one
                 mixer = Mixer('PCM')
             elif 'Digital' in mixers:
-                # My mixer is called 'Digital' (JustBoom DAC)
                 mixer = Mixer('Digital')
             else:
                 # should be equivalent to 'Master'
@@ -122,7 +130,7 @@ class VolumeKnobSkill(MycroftSkill):
         vol = default
         if self.mixer():
             vol = min(self._mixer.getvolume()[0], 100)
-            LOGGER.debug('Volume before mute: {}'.format(vol))
+            LOGGER.debug('Current volume: {}'.format(vol))
         return vol
 
     def volume(self, message):

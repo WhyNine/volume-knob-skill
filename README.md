@@ -1,4 +1,4 @@
-# <img src='AIY_logo_blue.png' card_color='#022B4F' width='50' height='50' style='vertical-align:bottom'/> Volume control skill
+# <img src='https://raw.githack.com/FortAwesome/Font-Awesome/master/svgs/solid/volume-down.svg' card_color='#022B4F' width='50' height='50' style='vertical-align:bottom'/> Volume knob skill
 
 ## About
 This Mycroft skill is written for the Piminori RGB Encoder, connected to a Raspberry Pi. The encoder includes red, green and blue LEDs, enabling it to light up with any desired colour.
