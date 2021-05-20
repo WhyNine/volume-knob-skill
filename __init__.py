@@ -78,8 +78,11 @@ class VolumeKnobSkill(MycroftSkill):
             self.knob = self.ioe.read_rotary_encoder(1)
             GPIO.setwarnings(False)
             GPIO.setup(INTERRUPT_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-            GPIO.remove_event_detect(INTERRUPT_PIN)
-            GPIO.add_event_detect(INTERRUPT_PIN, GPIO.FALLING)
+            try:
+                GPIO.add_event_detect(INTERRUPT_PIN, GPIO.FALLING)
+            except:
+                GPIO.remove_event_detect(INTERRUPT_PIN)
+                GPIO.add_event_detect(INTERRUPT_PIN, GPIO.FALLING)
             self.led_idle()
         except:
             LOGGER.warning("Can't initialize GPIO - skill will not load")
