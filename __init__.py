@@ -76,6 +76,7 @@ class VolumeKnobSkill(MycroftSkill):
             self.ioe.set_mode(LED_GREEN, io.PWM, invert=True)
             self.ioe.set_mode(LED_BLUE, io.PWM, invert=True)
             self.knob = self.ioe.read_rotary_encoder(1)
+            self.ioe.clear_interrupt()
             GPIO.setwarnings(False)
             GPIO.setup(INTERRUPT_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
             try:
