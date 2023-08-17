@@ -94,6 +94,7 @@ class VolumeKnobSkill(MycroftSkill):
         self.add_event('recognizer_loop:record_end', self.on_listener_ended)
         self.add_event('mycroft.skill.handler.complete', self.on_handler_complete)
         self.add_event('mycroft.speech.recognition.unknown', self.on_handler_complete)
+        LOGGER.info("Finished initialisation")
 
     def _get_mixer(self):
         LOGGER.debug('Finding Alsa Mixer for control...')
