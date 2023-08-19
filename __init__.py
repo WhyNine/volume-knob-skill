@@ -35,6 +35,7 @@ KNOB_A = 12
 KNOB_B = 3
 KNOB_C = 11
 
+old_volume = 50
 
 class VolumeKnobSkill(MycroftSkill):
 
@@ -163,10 +164,13 @@ class VolumeKnobSkill(MycroftSkill):
             self.knob = new_knob
 
     def on_listener_started(self, message):
+        global old_volume
         self.led_listen()
+        old_volume = self.get_volume()
 
     def on_listener_ended(self, message):
         self.led_think()
+        self.set_volume(old_volume)
 
     def on_handler_complete(self, message):
         self.led_idle()
