@@ -165,11 +165,11 @@ class VolumeKnobSkill(MycroftSkill):
 
     def on_listener_started(self, message):
         global old_volume
-        self.led_listen()
         old_volume = self.get_volume()
         new_volume = int(old_volume * 0.3)
         self.set_volume(new_volume)
         LOGGER.info(f"Original volume was {old_volume}, set volume to {new_volume}")
+        self.led_listen()
 
     def on_listener_ended(self, message):
         self.led_think()
