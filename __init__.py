@@ -19,6 +19,7 @@ from mycroft.util.log import getLogger
 from alsaaudio import Mixer, mixers as alsa_mixers
 import RPi.GPIO as GPIO
 import ioexpander as io
+import time
 
 colours = [[255, 0, 0], [0, 255, 0], [255, 255, 0], [0, 0, 255], [255, 0, 255], [0, 255, 255], [255, 255, 255], [0, 0, 0]]
 LOGGER = getLogger(__name__)
@@ -36,6 +37,8 @@ KNOB_B = 3
 KNOB_C = 11
 
 old_volume = 50
+listening_start_time = 0
+listening = False
 
 class VolumeKnobSkill(MycroftSkill):
 
@@ -91,6 +94,7 @@ class VolumeKnobSkill(MycroftSkill):
             self.speak_dialog("error.initialize")
             return
         self.schedule_repeating_event(self.volume, None, 0.1, 'VolumeKnob')
+        self.schedule_repeating_event(self.check_listening, None, 1, 'CheckListening')
         self.add_event('recognizer_loop:record_begin', self.on_listener_started)
         self.add_event('recognizer_loop:record_end', self.on_listener_ended)
         self.add_event('mycroft.skill.handler.complete', self.on_handler_complete)
@@ -163,13 +167,24 @@ class VolumeKnobSkill(MycroftSkill):
                 LOGGER.info(f"Volume set to {vol_level}")
             self.knob = new_knob
 
+    def check_listening(self, message):
+        global listening
+        if not listening:
+            return
+        if (time.time() - listening_start_time > 20):
+            self.on_handler_complete(message)
+
     def on_listener_started(self, message):
         global old_volume
+        global listening_start_time
+        global listening
         old_volume = self.get_volume()
         new_volume = int(old_volume * 0.3)
         self.set_volume(new_volume)
         LOGGER.info(f"Original volume was {old_volume}, set volume to {new_volume}")
         self.led_listen()
+        listening_start_time = time.time()
+        listening = True
 
     def on_listener_ended(self, message):
         self.led_think()
@@ -177,6 +192,8 @@ class VolumeKnobSkill(MycroftSkill):
         LOGGER.info(f"Set volume back to {old_volume}")
 
     def on_handler_complete(self, message):
+        global listening
+        listening = False
         self.led_idle()
 
     def on_settings_changed(self):
